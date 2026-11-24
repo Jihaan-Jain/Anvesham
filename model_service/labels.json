@@ -1,0 +1,17 @@
+{
+ "note": "Intent names inferred from training examples (the competition only gives numeric ids 0-55). Id 55 is a mixed bucket in the data: alarm set/query, podcasts, coffee and games.",
+ "names": [
+  "datetime_query", "light_change_colour", "train_ticket_booking", "food_order_status", "stock_price",
+  "greeting", "local_events", "music_dislike", "smart_plug_off", "cooking_recipe",
+  "currency_exchange", "traffic_query", "general_chitchat", "weather_query", "volume_up",
+  "email_add_contact", "food_order", "contact_lookup", "light_brighten", "place_recommendation",
+  "audiobook_play", "list_create_or_add", "news_query", "smart_plug_on", "joke",
+  "definition_query", "social_media_query", "music_settings", "audio_settings", "calendar_remove",
+  "light_dim", "calendar_query", "email_send", "vacuum_cleaner", "volume_down",
+  "radio_play", "cooking_tips", "timezone_convert", "maths", "light_off",
+  "light_on", "transport_route_query", "music_like", "email_check", "music_play",
+  "volume_mute", "social_media_post", "general_knowledge", "calendar_reminder_set", "alarm_remove",
+  "list_remove", "taxi_booking", "movie_recommendation", "song_info", "list_query",
+  "alarm_podcast_coffee_game"
+ ]
+}

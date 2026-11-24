@@ -1,0 +1,26 @@
+# Environment & Secrets
+.env
+*.env.local
+
+# Model weights archives and directories
+model_service/muril_intent/
+model_service/muril_intent*/
+model_service/muril_banking/
+model_service/muril_banking*/
+*.zip
+*.tar.gz
+*.bin
+*.safetensors
+
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs & OS artifacts
+*.log
+Thumbs.db
+.DS_Store

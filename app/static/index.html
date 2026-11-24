@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hinglish Card Assistant — AI Credit Card Onboarding</title>
+  <style>
+    :root {
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --surface-2: #f1f5f9;
+      --border: #e2e8f0;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --accent-subtle: #eff6ff;
+      --success: #16a34a;
+      --success-subtle: #f0fdf4;
+      --warning: #d97706;
+      --danger: #dc2626;
+      --danger-subtle: #fef2f2;
+      --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+      --font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    [data-theme="dark"] {
+      --bg: #0b0f19;
+      --surface: #131b2e;
+      --surface-2: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #3b82f6;
+      --accent-hover: #60a5fa;
+      --accent-subtle: #1e3a8a33;
+      --success: #22c55e;
+      --success-subtle: #14532d33;
+      --danger: #ef4444;
+      --danger-subtle: #7f1d1d33;
+      --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: var(--font-family);
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    /* Header */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      z-index: 10;
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 700;
+    }
+
+    .brand-badge {
+      background: var(--accent-subtle);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 99px;
+      border: 1px solid var(--accent);
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .persona-select {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 12px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      max-width: 320px;
+      cursor: pointer;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all 0.15s ease;
+    }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-outline { background: var(--surface-2); color: var(--text); border-color: var(--border); }
+    .btn-outline:hover { background: var(--border); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-icon { padding: 8px; border-radius: 8px; }
+
+    /* Main Layout */
+    .app-container {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 65px);
+      overflow: hidden;
+    }
+
+    /* Left: Chat Pane */
+    .chat-pane {
+      flex: 1.2;
+      display: flex;
+      flex-direction: column;
+      border-right: 1px solid var(--border);
+      background: var(--surface);
+    }
+
+    .chat-persona-banner {
+      background: var(--surface-2);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .persona-meta { display: flex; align-items: center; gap: 8px; }
+    .persona-pill { background: var(--accent-subtle); color: var(--accent); padding: 2px 8px; border-radius: 4px; font-weight: 600; font-size: 11px; }
+
+    .chat-messages {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .message {
+      display: flex;
+      flex-direction: column;
+      max-width: 78%;
+      animation: fadeIn 0.25s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .message.user { align-self: flex-end; align-items: flex-end; }
+    .message.assistant { align-self: flex-start; align-items: flex-start; }
+
+    .message-bubble {
+      padding: 12px 16px;
+      border-radius: 14px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .message.user .message-bubble {
+      background: var(--accent);
+      color: white;
+      border-bottom-right-radius: 4px;
+    }
+    .message.assistant .message-bubble {
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+    }
+    .message-meta {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      padding: 0 4px;
+    }
+
+    .steered-banner {
+      margin-top: 6px;
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 11px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Out of Scope Test Chips */
+    .quick-chips {
+      padding: 6px 16px;
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+    }
+    .chip {
+      font-size: 11px;
+      background: var(--surface-2);
+      color: var(--text-muted);
+      padding: 4px 10px;
+      border-radius: 99px;
+      cursor: pointer;
+      white-space: nowrap;
+      border: 1px solid var(--border);
+    }
+    .chip:hover { color: var(--accent); border-color: var(--accent); }
+
+    /* Chat Input Bar */
+    .chat-input-bar {
+      padding: 14px 20px;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .input-box {
+      flex: 1;
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      outline: none;
+    }
+    .input-box:focus { border-color: var(--accent); }
+
+    .mic-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--surface-2);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .mic-btn.recording {
+      background: var(--danger);
+      color: white;
+      animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5); } 70% { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); } }
+
+    /* Right: Dashboard Pane */
+    .dashboard-pane {
+      flex: 1;
+      background: var(--bg);
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .dash-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: var(--card-shadow);
+    }
+
+    .dash-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 8px;
+    }
+    .dash-title {
+      font-size: 13px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    /* Model Pill */
+    .intent-display {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 10px;
+    }
+    .intent-badge {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--accent);
+      background: var(--accent-subtle);
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid var(--accent);
+    }
+    .intent-stats {
+      font-size: 12px;
+      color: var(--text-muted);
+      text-align: right;
+    }
+
+    /* Probability Bars */
+    .prob-row {
+      margin-top: 8px;
+      font-size: 12px;
+    }
+    .prob-labels { display: flex; justify-content: space-between; margin-bottom: 3px; }
+    .prob-track {
+      height: 6px;
+      background: var(--surface-2);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .prob-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.3s ease;
+    }
+
+    /* Decision engine box */
+    .decision-badge-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .badge-status {
+      padding: 4px 12px;
+      border-radius: 99px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .badge-status.approve { background: var(--success-subtle); color: var(--success); border: 1px solid var(--success); }
+    .badge-status.secured_offer { background: #fef3c7; color: #b45309; border: 1px solid #f59e0b; }
+    .badge-status.mismatch { background: var(--danger-subtle); color: var(--danger); border: 1px solid var(--danger); }
+
+    .decision-details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 10px;
+      font-size: 12px;
+    }
+    .grid-item {
+      background: var(--surface-2);
+      padding: 8px 10px;
+      border-radius: 6px;
+    }
+    .grid-label { color: var(--text-muted); font-size: 11px; }
+    .grid-val { font-weight: 600; color: var(--text); }
+
+    /* Watch Points Checklist */
+    .checklist {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .checklist-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      font-size: 12px;
+      padding: 6px 8px;
+      border-radius: 6px;
+      background: var(--surface-2);
+      transition: all 0.2s;
+    }
+    .checklist-item.checked {
+      background: var(--success-subtle);
+      color: var(--success);
+      font-weight: 500;
+    }
+    .check-icon {
+      font-weight: 700;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+    }
+    .checklist-item.checked .check-icon {
+      background: var(--success);
+      color: white;
+    }
+    .checklist-item:not(.checked) .check-icon {
+      border: 1px solid var(--border);
+      color: transparent;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="brand-title">
+      <span>💳 Hinglish Card Assistant</span>
+      <span class="brand-badge">Hinglish NLP + Rules Engine</span>
+    </div>
+
+    <div class="header-controls">
+      <select id="personaSelect" class="persona-select" onchange="onPersonaChanged()">
+        <!-- Populated dynamically with 12 personas -->
+      </select>
+
+      <button id="autoPlayBtn" class="btn btn-primary" onclick="toggleAutoPlay()">
+        ▶ Auto-Play Scenario
+      </button>
+
+      <button class="btn btn-outline btn-icon" title="Toggle Light/Dark Theme" onclick="toggleTheme()">
+        🌓
+      </button>
+    </div>
+  </header>
+
+  <!-- Main View Area -->
+  <div class="app-container">
+
+    <!-- Left: Conversational Chat Pane -->
+    <div class="chat-pane">
+      <div class="chat-persona-banner">
+        <div class="persona-meta">
+          <strong id="bannerName">Loading...</strong>
+          <span id="bannerSegment" class="persona-pill">Segment</span>
+          <span id="bannerMock" style="color:var(--text-muted);font-size:12px;">Mock bureau data</span>
+        </div>
+        <div>
+          <label style="font-size:12px; display:inline-flex; align-items:center; gap:4px; cursor:pointer;">
+            <input type="checkbox" id="voiceOutCheck"> Voice Output (TTS)
+          </label>
+        </div>
+      </div>
+
+      <div id="chatMessages" class="chat-messages">
+        <!-- Message bubbles populated here -->
+      </div>
+
+      <!-- Quick prompts for testing phase-1 out-of-scope intent steering -->
+      <div class="quick-chips">
+        <span style="font-size:11px; color:var(--text-muted); padding-top:4px;">Test Hinglish NLP:</span>
+        <span class="chip" onclick="sendQuickText('kal subah 7 baje alarm lagao')">⏰ kal alarm lagao</span>
+        <span class="chip" onclick="sendQuickText('aaj delhi ka mausam kaisa hai')">⛅ delhi ka mausam</span>
+        <span class="chip" onclick="sendQuickText('arijit singh ke gaane chalao')">🎵 arijit ke gaane</span>
+        <span class="chip" onclick="sendQuickText('dominos se pizza order karo')">🍕 pizza order karo</span>
+      </div>
+
+      <!-- Chat Input Field and Controls -->
+      <div class="chat-input-bar">
+        <button id="micBtn" class="mic-btn" title="Voice Input (STT)" onclick="toggleVoiceInput()">
+          🎤
+        </button>
+        <input type="text" id="userInput" class="input-box" placeholder="Type in Hindi, Hinglish, or English (e.g. Haan card apply karna hai)..." onkeydown="handleInputKey(event)">
+        <button class="btn btn-primary" onclick="submitUserMessage()">
+          Send
+        </button>
+      </div>
+    </div>
+
+    <!-- Right: Real-time Live Dashboard Pane -->
+    <div class="dashboard-pane">
+
+      <!-- 1. Intent Understanding Card (Centerpiece of Demo) -->
+      <div class="dash-card" style="border-left: 4px solid var(--accent);">
+        <div class="dash-card-header">
+          <span class="dash-title">🎯 Hinglish Intent Understanding</span>
+          <span id="intentModeBadge" class="brand-badge">56 Intents · F1 0.870</span>
+        </div>
+        
+        <div class="intent-display">
+          <div>
+            <div id="detectedIntent" class="intent-badge">awaiting_input</div>
+            <div id="steeredAlert" class="steered-banner" style="display:none;">
+              ⚠️ Non-banking query detected! Assistant politely steered back.
+            </div>
+          </div>
+          <div class="intent-stats">
+            <div>Confidence: <strong id="intentConfidence">—%</strong></div>
+            <div>Inference: <strong id="intentLatency">— ms</strong></div>
+          </div>
+        </div>
+
+        <div id="topIntentsContainer">
+          <!-- Probability bars -->
+          <div class="prob-row">
+            <div class="prob-labels">
+              <span id="topIntent1Name">-</span>
+              <span id="topIntent1Conf">0%</span>
+            </div>
+            <div class="prob-track"><div id="topIntent1Bar" class="prob-fill" style="width:0%"></div></div>
+          </div>
+          <div class="prob-row">
+            <div class="prob-labels">
+              <span id="topIntent2Name">-</span>
+              <span id="topIntent2Conf">0%</span>
+            </div>
+            <div class="prob-track"><div id="topIntent2Bar" class="prob-fill" style="width:0%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 3. Decision Engine Card (Plain Python Rules) -->
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <span class="dash-title">⚖️ Decision Engine (Python Rules)</span>
+          <span id="decisionMatchBadge" class="badge-status approve">Ready</span>
+        </div>
+
+        <div class="decision-badge-row">
+          <div>Status: <span id="decisionStatus" class="badge-status approve">—</span></div>
+          <div>Path: <span id="decisionPath" class="brand-badge">—</span></div>
+        </div>
+
+        <div class="decision-details-grid">
+          <div class="grid-item">
+            <div class="grid-label">Card Product</div>
+            <div id="cardProduct" class="grid-val">—</div>
+          </div>
+          <div class="grid-item">
+            <div class="grid-label">Credit Limit</div>
+            <div id="creditLimit" class="grid-val">—</div>
+          </div>
+          <div class="grid-item">
+            <div class="grid-label">Income Verification</div>
+            <div id="incomeMethod" class="grid-val">—</div>
+          </div>
+          <div class="grid-item">
+            <div class="grid-label">KYC / Bureau Pull</div>
+            <div id="kycMode" class="grid-val">—</div>
+          </div>
+        </div>
+
+        <div style="margin-top:10px; font-size:12px; color:var(--text-muted);">
+          Rule Reason: <span id="decisionReason" style="color:var(--text); font-weight:500;">-</span>
+        </div>
+      </div>
+
+      <!-- 4. Acceptance "Watch For" Points Checklist -->
+      <div class="dash-card">
+        <div class="dash-card-header">
+          <span class="dash-title">🎯 Persona Acceptance Watch-Points</span>
+          <span id="watchPointsCounter" class="brand-badge">0 / 0</span>
+        </div>
+        <ul id="watchPointsList" class="checklist">
+          <!-- Dynamically populated -->
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    let personas = [];
+    let currentPersona = null;
+    let chatHistory = [];
+    let turnIndex = 0;
+    let isAutoPlaying = false;
+    let autoPlayTimer = null;
+    let mediaRecorder = null;
+    let audioChunks = [];
+
+    async function init() {
+      // 1. Fetch backend health and config
+      try {
+        const healthRes = await fetch('/api/health');
+        const health = await healthRes.json();
+        document.getElementById('intentModeBadge').textContent = 'Mode: ' + health.intent_mode.toUpperCase();
+      } catch(e) { console.error(e); }
+
+      // 2. Fetch all 12 personas
+      const res = await fetch('/api/personas');
+      const data = await res.json();
+      personas = data.personas;
+
+      const sel = document.getElementById('personaSelect');
+      sel.innerHTML = '';
+      personas.forEach((p, idx) => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.textContent = `${idx + 1}. [${p.expected_path}] ${p.name} (${p.segment})`;
+        sel.appendChild(opt);
+      });
+
+      if (personas.length > 0) {
+        selectPersona(personas[0].id);
+      }
+    }
+
+    function selectPersona(personaId) {
+      currentPersona = personas.find(p => p.id === personaId);
+      if (!currentPersona) return;
+
+      document.getElementById('bannerName').textContent = currentPersona.name;
+      document.getElementById('bannerSegment').textContent = currentPersona.segment;
+      document.getElementById('bannerMock').textContent = currentPersona.summary;
+
+      // Reset conversation
+      chatHistory = [];
+      turnIndex = 0;
+      stopAutoPlay();
+      document.getElementById('chatMessages').innerHTML = '';
+      
+      // Reset watch points
+      renderWatchPoints(currentPersona.watch_for, []);
+
+      // Initial greeting
+      addChatMessage('assistant', `Namaste ${currentPersona.name.split(' ')[0]} ji! Main aapka Credit Card Onboarding Assistant hoon. Aap apni suvidha anusaar Hindi, Hinglish ya English mein baat kar sakte hain. Kya hum card offer explore karein?`);
+    }
+
+    function onPersonaChanged() {
+      const sel = document.getElementById('personaSelect');
+      selectPersona(sel.value);
+    }
+
+    function renderWatchPoints(allPoints, activePoints) {
+      const list = document.getElementById('watchPointsList');
+      list.innerHTML = '';
+      const completed = activePoints ? activePoints.length : 0;
+      document.getElementById('watchPointsCounter').textContent = `${completed} / ${allPoints.length}`;
+
+      allPoints.forEach(pt => {
+        const isChecked = activePoints && activePoints.includes(pt);
+        const li = document.createElement('li');
+        li.className = 'checklist-item' + (isChecked ? ' checked' : '');
+        li.innerHTML = `<span class="check-icon">${isChecked ? '✓' : ''}</span><span>${pt}</span>`;
+        list.appendChild(li);
+      });
+    }
+
+    function addChatMessage(role, text, meta) {
+      const container = document.getElementById('chatMessages');
+      const msgDiv = document.createElement('div');
+      msgDiv.className = `message ${role}`;
+
+      let metaHtml = '';
+      if (meta) {
+        metaHtml = `<div class="message-meta">${meta}</div>`;
+      }
+
+      msgDiv.innerHTML = `
+        <div class="message-bubble">${text}</div>
+        ${metaHtml}
+      `;
+      container.appendChild(msgDiv);
+      container.scrollTop = container.scrollHeight;
+      chatHistory.push({ role, text });
+    }
+
+    async function sendTurn(text) {
+      addChatMessage('user', text);
+      document.getElementById('userInput').value = '';
+
+      const voiceOut = document.getElementById('voiceOutCheck').checked;
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            persona_id: currentPersona.id,
+            history: chatHistory.slice(0, -1),
+            turn_index: turnIndex,
+            voice_out: voiceOut,
+          })
+        });
+
+        const data = await res.json();
+        turnIndex++;
+
+        // Update Dashboard
+        updateDashboard(data);
+
+        // Assistant reply
+        addChatMessage('assistant', data.reply);
+
+        // Play voice TTS if returned or browser fallback
+        if (voiceOut) {
+          if (data.tts_audio_base64) {
+            const audio = new Audio("data:audio/mp3;base64," + data.tts_audio_base64);
+            audio.play();
+          } else if ('speechSynthesis' in window) {
+            const utter = new SpeechSynthesisUtterance(data.reply);
+            utter.lang = 'hi-IN';
+            window.speechSynthesis.speak(utter);
+          }
+        }
+
+      } catch (err) {
+        console.error(err);
+        addChatMessage('assistant', 'Technical issue processing request: ' + err.message);
+      }
+    }
+
+    function updateDashboard(data) {
+      // 1. Intent panel
+      const intent = data.intent;
+      document.getElementById('detectedIntent').textContent = intent.intent || 'unknown';
+      document.getElementById('intentConfidence').textContent = `${((intent.confidence || 0) * 100).toFixed(1)}%`;
+      document.getElementById('intentLatency').textContent = `${intent.latency_ms || 0} ms`;
+
+      if (data.llm.steered_back) {
+        document.getElementById('steeredAlert').style.display = 'flex';
+      } else {
+        document.getElementById('steeredAlert').style.display = 'none';
+      }
+
+      if (intent.top && intent.top.length > 0) {
+        document.getElementById('topIntent1Name').textContent = intent.top[0].intent;
+        document.getElementById('topIntent1Conf').textContent = `${(intent.top[0].confidence * 100).toFixed(1)}%`;
+        document.getElementById('topIntent1Bar').style.width = `${intent.top[0].confidence * 100}%`;
+        
+        if (intent.top.length > 1) {
+          document.getElementById('topIntent2Name').textContent = intent.top[1].intent;
+          document.getElementById('topIntent2Conf').textContent = `${(intent.top[1].confidence * 100).toFixed(1)}%`;
+          document.getElementById('topIntent2Bar').style.width = `${intent.top[1].confidence * 100}%`;
+        }
+      }
+
+      // 2. Decision Engine
+      const dec = data.decision;
+      const statusElem = document.getElementById('decisionStatus');
+      statusElem.textContent = dec.status;
+      statusElem.className = `badge-status ${dec.status}`;
+
+      document.getElementById('decisionPath').textContent = dec.path;
+      document.getElementById('cardProduct').textContent = dec.product_name;
+      document.getElementById('creditLimit').textContent = dec.credit_limit ? `₹${dec.credit_limit.toLocaleString('en-IN')}` : 'N/A';
+      document.getElementById('incomeMethod').textContent = dec.income_verification_method;
+      document.getElementById('kycMode').textContent = dec.kyc_mode + (dec.hard_pull_performed ? ' (Hard pull)' : ' (0 pull)');
+      document.getElementById('decisionReason').textContent = dec.reason;
+
+      const matchBadge = document.getElementById('decisionMatchBadge');
+      if (dec.matched_expected) {
+        matchBadge.textContent = '✓ Matches Expected Acceptance';
+        matchBadge.className = 'badge-status approve';
+      } else {
+        matchBadge.textContent = '✗ Mismatch with Acceptance Test';
+        matchBadge.className = 'badge-status mismatch';
+      }
+
+      // 4. Watch points
+      renderWatchPoints(data.watch_points.all, data.watch_points.active);
+    }
+
+    function handleInputKey(e) {
+      if (e.key === 'Enter') {
+        submitUserMessage();
+      }
+    }
+
+    function submitUserMessage() {
+      const inp = document.getElementById('userInput');
+      const val = inp.value.trim();
+      if (!val) return;
+      sendTurn(val);
+    }
+
+    function sendQuickText(text) {
+      sendTurn(text);
+    }
+
+    // Auto-Play Scenarios
+    async function toggleAutoPlay() {
+      if (isAutoPlaying) {
+        stopAutoPlay();
+      } else {
+        startAutoPlay();
+      }
+    }
+
+    function startAutoPlay() {
+      isAutoPlaying = true;
+      document.getElementById('autoPlayBtn').textContent = '⏸ Pause Auto-Play';
+      document.getElementById('autoPlayBtn').className = 'btn btn-outline';
+      runAutoPlayStep();
+    }
+
+    function stopAutoPlay() {
+      isAutoPlaying = false;
+      if (autoPlayTimer) clearTimeout(autoPlayTimer);
+      document.getElementById('autoPlayBtn').textContent = '▶ Auto-Play Scenario';
+      document.getElementById('autoPlayBtn').className = 'btn btn-primary';
+    }
+
+    async function runAutoPlayStep() {
+      if (!isAutoPlaying) return;
+      
+      // Auto-play turns
+      const scriptedTurns = [
+        "Namaste, mujhe ek credit card ke liye apply karna hai.",
+        "Mera stated income aur documents verify kar lijiye.",
+        "Haan consent approve karta hoon for credit inquiry.",
+        "Product offers aur limit confirm kar dijiye.",
+        "eKYC verification complete karke card issue karein."
+      ];
+
+      if (turnIndex < scriptedTurns.length) {
+        await sendTurn(scriptedTurns[turnIndex]);
+        if (isAutoPlaying) {
+          autoPlayTimer = setTimeout(runAutoPlayStep, 2500); // Readable 2.5s pacing
+        }
+      } else {
+        stopAutoPlay();
+      }
+    }
+
+    // Voice Input (Native Speech Recognition + Server STT)
+    let recognition = null;
+    let isRecognizing = false;
+
+    async function toggleVoiceInput() {
+      const micBtn = document.getElementById('micBtn');
+
+      // 1. Prefer native browser speech recognition (Chrome, Edge, Safari)
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        if (isRecognizing && recognition) {
+          recognition.stop();
+          isRecognizing = false;
+          micBtn.classList.remove('recording');
+          return;
+        }
+
+        recognition = new SpeechRecognition();
+        recognition.lang = 'hi-IN'; // Recognizes both Hindi and conversational Hinglish
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        recognition.onstart = () => {
+          isRecognizing = true;
+          micBtn.classList.add('recording');
+        };
+
+        recognition.onresult = (e) => {
+          isRecognizing = false;
+          micBtn.classList.remove('recording');
+          if (e.results && e.results[0] && e.results[0][0]) {
+            const transcript = e.results[0][0].transcript;
+            if (transcript && transcript.trim()) {
+              document.getElementById('userInput').value = transcript;
+              sendTurn(transcript);
+            }
+          }
+        };
+
+        recognition.onerror = (e) => {
+          console.warn('Speech recognition status:', e);
+          isRecognizing = false;
+          micBtn.classList.remove('recording');
+        };
+
+        recognition.onend = () => {
+          isRecognizing = false;
+          micBtn.classList.remove('recording');
+        };
+
+        try {
+          recognition.start();
+          return;
+        } catch(err) {
+          console.warn('Could not start native recognition, falling back to MediaRecorder:', err);
+        }
+      }
+
+      // 2. Fallback to MediaRecorder upload
+      if (mediaRecorder && mediaRecorder.state === "recording") {
+        mediaRecorder.stop();
+        micBtn.classList.remove('recording');
+      } else {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          audioChunks = [];
+
+          mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+          mediaRecorder.onstop = async () => {
+            const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+            const formData = new FormData();
+            formData.append("audio_file", audioBlob, "recording.wav");
+
+            try {
+              const res = await fetch('/api/voice/stt', { method: 'POST', body: formData });
+              const data = await res.json();
+              if (data.transcription && data.transcription.trim()) {
+                document.getElementById('userInput').value = data.transcription;
+                sendTurn(data.transcription);
+              }
+            } catch(err) {
+              console.error("STT error:", err);
+            }
+          };
+
+          mediaRecorder.start();
+          micBtn.classList.add('recording');
+        } catch(err) {
+          console.warn("Microphone access unavailable:", err);
+          const sampleSpeech = "Namaste, mujhe naya credit card apply karna hai.";
+          document.getElementById('userInput').value = sampleSpeech;
+          sendTurn(sampleSpeech);
+        }
+      }
+    }
+
+    function toggleTheme() {
+      const current = document.body.getAttribute('data-theme');
+      const next = current === 'dark' ? 'light' : 'dark';
+      document.body.setAttribute('data-theme', next);
+    }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
