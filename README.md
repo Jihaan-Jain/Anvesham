@@ -118,28 +118,7 @@ In financial onboarding for the Indian market, doing so introduces major bottlen
 
 ---
 
-## 3. Acceptance Personas Matrix (12 Scenarios)
-
-The underwriting engine passes all 12 acceptance personas from [SCENARIOS.md](file:///c:/Users/jainj/Downloads/windows_handoff/SCENARIOS.md):
-
-| # | Persona ID | Customer Name | Segment | Key Signals & Financial Profile | Status | Path | Assigned Limit | Card Product |
-|---|---|---|---|---|---|---|---|---|
-| 1 | `ntb_super_prime` | Vikram Sethi | NTB | CIBIL 810, Bureau Income ₹1,40,000 | `APPROVE` | `super_prime` | ₹3,50,000 | Infinia Metal |
-| 2 | `ntb_prime` | Priya Nair | NTB | CIBIL 752, Bureau Income ₹1,10,000, Owned Home | `APPROVE` | `prime` | ₹2,75,000 | Regalia Gold |
-| 3 | `ntb_near_prime` | Arjun Mehta | NTB | CIBIL 705, Stated ₹65k, EMIs ₹8k, FOIR $\le 50\%$ | `APPROVE` | `near_prime` | ₹1,17,000 | Millennia Select |
-| 4 | `ntb_pg_stable` | Aarav Menon | NTB | CIBIL 712, PG Resident, Employer Tenure 3 yrs | `APPROVE` | `near_prime` | ₹1,04,400 | Millennia Select |
-| 5 | `ntb_pg_new_job` | Nisha Kapoor | NTB | CIBIL 710, PG Resident, Job 5 mos, AA Verified ₹55k | `APPROVE` | `near_prime` | ₹99,000 | Millennia Select |
-| 6 | `ntc_unsecured` | Meera Iyer | NTC | Zero Credit History, ₹85k Monthly, 3 Payslips | `APPROVE` | `near_prime` | ₹1,53,000 | Millennia Select |
-| 7 | `ntc_aa` | Tanvi Shah | NTC | Zero Credit History, AA Verified ₹68k | `APPROVE` | `near_prime` | ₹1,22,400 | Millennia Select |
-| 8 | `ntc_overstated` | Imran Qureshi | NTC | Stated ₹85k, AA Verified ₹24k ($< \text{₹}30\text{k}$) | `SECURED_OFFER` | `secured` | ₹25,000 | Step-Up Secured |
-| 9 | `ntc_secured` | Kavya Rao | NTC | Zero Credit History, Monthly Income ₹22k ($< \text{₹}30\text{k}$) | `SECURED_OFFER` | `secured` | ₹25,000 | Step-Up Secured |
-| 10 | `ntb_low_score` | Rohan Das | NTB | CIBIL 640 ($< 690$), Bruised Credit, Income Waived | `SECURED_OFFER` | `secured` | ₹25,000 | Step-Up Secured |
-| 11 | `student` | Ananya Gupta | Student | Age 20, Student, Zero Income, 0 Bureau Pull | `SECURED_OFFER` | `student` | ₹20,000 | Campus Builder |
-| 12 | `etb_preapproved` | Asha Rao | ETB | 6-yr Bank Relationship, Pre-Approved Offer on File | `APPROVE` | `etb_preapproved` | ₹2,50,000 | Regalia Pre-Approved |
-
----
-
-## 4. Quickstart & Installation
+## 3. Quickstart & Installation
 
 ### Windows PowerShell One-Click Runner
 
@@ -168,7 +147,7 @@ Open your browser at: **`http://localhost:8100`**
 
 ---
 
-## 5. Configuration (`.env`)
+## 4. Configuration (`.env`)
 
 Copy `.env.example` to `.env`:
 ```powershell
@@ -185,7 +164,7 @@ Available provider modes:
 
 ---
 
-## 6. Running Acceptance Tests
+## 5. Running Acceptance Tests
 
 Run the deterministic test suite asserting all 12 personas match their exact status and path:
 
@@ -221,7 +200,7 @@ Summary: 12 passed, 0 failed out of 12 personas.
 
 ---
 
-## 7. Phase 2: Banking Intent Model Adaptation
+## 6. Phase 2: Banking Intent Model Adaptation
 
 The repository includes a complete pipeline to expand the general intent classifier into a dedicated banking domain model:
 
@@ -237,7 +216,7 @@ The repository includes a complete pipeline to expand the general intent classif
 
 ---
 
-## 8. Project Structure
+## 7. Project Structure
 
 ```text
 Anvesham/
@@ -284,6 +263,6 @@ Anvesham/
 
 ---
 
-## 9. License
+## 8. License
 
 Distributed under the MIT License. See `LICENSE` for details.
